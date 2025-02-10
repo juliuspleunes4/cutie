@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    flex: 0.85, // Occupy slightly less of the screen
+    flex: 0.85, // 85% of the screen height
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
