@@ -61,7 +61,7 @@ export default function App() {
         <TouchableOpacity style={styles.headerButton}>
           <Icon name="menu" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>cutie</Text>
+        <Image source={require('../assets/images/cutie_text.png')} style={styles.headerImage} />
         <TouchableOpacity style={styles.headerButton}>
           <Icon name="edit-2" size={24} color="#000" />
         </TouchableOpacity>
@@ -97,19 +97,19 @@ export default function App() {
       <Animated.View style={[styles.bottomBar, { marginBottom: keyboardHeight }]}>
         <View style={styles.inputContainer}>
           <TouchableOpacity style={styles.inputButton}>
-            <Icon name="plus" size={24} color="#666" />
+            <Icon name="plus" size={24} color="#000000" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.inputButton}>
-            <Icon name="globe" size={24} color="#666" />
+            <Icon name="layers" size={24} color="#000000" />
           </TouchableOpacity>
           <TextInput 
             style={styles.input}
-            placeholder="Message"
-            placeholderTextColor="#999"
+            placeholder="Message..."
+            placeholderTextColor="#000000"
           />
         </View>
         <TouchableOpacity style={styles.scrollTopButton}>
-          <Icon name="arrow-up" size={24} color="#666" />
+          <Icon name="arrow-up" size={24} color="#000000" />
         </TouchableOpacity>
       </Animated.View>
     </SafeAreaView>
@@ -133,9 +133,10 @@ const styles = StyleSheet.create({
   headerButton: {
     padding: 8,
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
+  headerImage: {
+    width: 100,
+    height: 32,
+    resizeMode: 'contain',
   },
   content: {
     flex: 1,
