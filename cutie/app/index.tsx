@@ -126,10 +126,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 4, // Adjusted padding for more top space
+    marginTop: 0, // Removed margin
   },
   headerButton: {
-    padding: 8,
+    padding: 4, // Reduced padding
   },
   headerImage: {
     width: 100,
