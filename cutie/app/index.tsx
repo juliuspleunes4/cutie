@@ -186,10 +186,12 @@ const styles = StyleSheet.create({
   bottomBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    padding: 10, // Adjusted padding
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
-    backgroundColor: '#fff',
+    backgroundColor: '#f8f8f8', // Same background color as suggestion cards
+    borderRadius: 12, // Rounded corners
+    margin: 16, // Margin to separate from screen edges
   },
   inputContainer: {
     flex: 1,
