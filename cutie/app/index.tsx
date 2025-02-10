@@ -93,6 +93,9 @@ export default function App() {
         />
       </View>
 
+      {/* Divider */}
+      <View style={styles.divider} />
+
       {/* Bottom Bar */}
       <Animated.View style={[styles.bottomBar, { marginBottom: keyboardHeight }]}>
         <View style={styles.inputContainer}>
@@ -182,6 +185,12 @@ const styles = StyleSheet.create({
   suggestionSubtitle: {
     fontSize: 14,
     color: '#666',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#f0f0f0',
+    marginHorizontal: 16,
+    marginBottom: 16, // Added margin for spacing
   },
   bottomBar: {
     flexDirection: 'row',
