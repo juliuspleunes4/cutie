@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { SafeAreaView, View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, FlatList, Image } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { SafeAreaView, View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, FlatList, Image, KeyboardAvoidingView, Platform, Animated, Keyboard } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { StatusBar } from 'expo-status-bar';
 
@@ -23,13 +23,34 @@ const suggestions = [
   { title: "Give strategic advice", subtitle: "to optimize business decisions and performance" }
 ];
 
-
 export default function App() {
   const [randomSuggestions, setRandomSuggestions] = useState<typeof suggestions>([]);
+  const keyboardHeight = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const shuffled = [...suggestions].sort(() => 0.5 - Math.random());
     setRandomSuggestions(shuffled.slice(0, 3));
+
+    const keyboardWillShow = Keyboard.addListener('keyboardWillShow', (event) => {
+      Animated.timing(keyboardHeight, {
+        duration: event.duration,
+        toValue: event.endCoordinates.height,
+        useNativeDriver: false,
+      }).start();
+    });
+
+    const keyboardWillHide = Keyboard.addListener('keyboardWillHide', (event) => {
+      Animated.timing(keyboardHeight, {
+        duration: event.duration,
+        toValue: 0,
+        useNativeDriver: false,
+      }).start();
+    });
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
   }, []);
 
   return (
@@ -37,65 +58,60 @@ export default function App() {
       {/* Header */}
       <StatusBar hidden={true} />
       <View style={styles.header}>
-      <TouchableOpacity style={styles.headerButton}>
-        <Icon name="menu" size={24} color="#000" />
-      </TouchableOpacity>
-      <Text style={styles.headerTitle}>cutie</Text>
-      <TouchableOpacity style={styles.headerButton}>
-        <Icon name="edit-2" size={24} color="#000" />
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.headerButton}>
+          <Icon name="menu" size={24} color="#000" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>cutie</Text>
+        <TouchableOpacity style={styles.headerButton}>
+          <Icon name="edit-2" size={24} color="#000" />
+        </TouchableOpacity>
       </View>
 
       {/* Main Content */}
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
-      {/* Centered Image */}
-      <View style={styles.imageContainer}>
-        <Image source={require('../assets/images/logobw.png')} style={styles.logo} />
-      </View>
+        {/* Centered Image */}
+        <View style={styles.imageContainer}>
+          <Image source={require('../assets/images/logobw.png')} style={styles.logo} />
+        </View>
       </ScrollView>
 
       {/* Suggestions */}
       <View style={styles.suggestionsWrapper}>
-  <FlatList
-    data={randomSuggestions}
-    horizontal
-    showsHorizontalScrollIndicator={false}
-    bounces={false} // Voorkomt omhoog swipen
-    contentContainerStyle={styles.suggestionsContainer}
-    renderItem={({ item }) => (
-      <TouchableOpacity style={styles.suggestionCard}>
-        <Text style={styles.suggestionTitle} numberOfLines={1}>{item.title}</Text>
-        <Text style={styles.suggestionSubtitle} numberOfLines={2}>{item.subtitle}</Text>
-      </TouchableOpacity>
-    )}
-    keyExtractor={(item) => item.title}
-  />
-</View>
-
-
-
-
-
-
-      {/* Bottom Bar */}
-      <View style={styles.bottomBar}>
-      <View style={styles.inputContainer}>
-        <TouchableOpacity style={styles.inputButton}>
-        <Icon name="plus" size={24} color="#666" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.inputButton}>
-        <Icon name="globe" size={24} color="#666" />
-        </TouchableOpacity>
-        <TextInput 
-        style={styles.input}
-        placeholder="Message"
-        placeholderTextColor="#999"
+        <FlatList
+          data={randomSuggestions}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          bounces={false} // Prevent vertical scroll
+          contentContainerStyle={styles.suggestionsContainer}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.suggestionCard}>
+              <Text style={styles.suggestionTitle} numberOfLines={1}>{item.title}</Text>
+              <Text style={styles.suggestionSubtitle} numberOfLines={2}>{item.subtitle}</Text>
+            </TouchableOpacity>
+          )}
+          keyExtractor={(item) => item.title}
         />
       </View>
-      <TouchableOpacity style={styles.scrollTopButton}>
-        <Icon name="arrow-up" size={24} color="#666" />
-      </TouchableOpacity>
-      </View>
+
+      {/* Bottom Bar */}
+      <Animated.View style={[styles.bottomBar, { marginBottom: keyboardHeight }]}>
+        <View style={styles.inputContainer}>
+          <TouchableOpacity style={styles.inputButton}>
+            <Icon name="plus" size={24} color="#666" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.inputButton}>
+            <Icon name="globe" size={24} color="#666" />
+          </TouchableOpacity>
+          <TextInput 
+            style={styles.input}
+            placeholder="Message"
+            placeholderTextColor="#999"
+          />
+        </View>
+        <TouchableOpacity style={styles.scrollTopButton}>
+          <Icon name="arrow-up" size={24} color="#666" />
+        </TouchableOpacity>
+      </Animated.View>
     </SafeAreaView>
   );
 }
@@ -105,7 +121,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -130,40 +145,33 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   imageContainer: {
-    flex: 1, // Zorgt ervoor dat het de resterende ruimte gebruikt
-    justifyContent: 'center', // Centreert verticaal
-    alignItems: 'center', // Centreert horizontaal
+    flex: 1, // occupy remaining space
+    justifyContent: 'center', // center vertically
+    alignItems: 'center', // center horizontally
   },
   logo: {
     width: '10%',
-    height: undefined, // Houdt de aspect ratio intact
-    aspectRatio: 1, // Houdt de breedte/hoogte verhouding gelijk
+    height: undefined, // maintain aspect ratio
+    aspectRatio: 1, // keep width/height ratio
   },
-  
-  
   suggestionsContainer: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    flexGrow: 1, // Belangrijk! Dit laat horizontaal swipen toe, maar voorkomt omhoog swipen
-    justifyContent: 'flex-end', // Duwt het naar beneden
+    flexGrow: 1, // allow horizontal scroll but prevent vertical
+    justifyContent: 'flex-end', // push to bottom
   },
-  
   suggestionsWrapper: {
-    flex: 0, // Belangrijk! Dit voorkomt dat het omhoog kan swipen
-    justifyContent: 'flex-end', // Zorgt ervoor dat de suggesties naar beneden gedrukt worden
-    paddingBottom: 20, // Extra ruimte zodat het niet tegen de rand zit
+    flex: 0, // prevent vertical scroll
+    justifyContent: 'flex-end', // push suggestions to bottom
+    paddingBottom: 20, // extra spacing from edge
   },
-  
-  
-  
-  
   suggestionCard: {
     backgroundColor: '#f8f8f8',
     padding: 12,
     borderRadius: 12,
     marginRight: 12,
     width: 200,
-    height: 100, // Fixed height for the card
+    height: 100, // fixed height for the card
   },
   suggestionTitle: {
     fontSize: 16,
