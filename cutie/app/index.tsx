@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { SafeAreaView, View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, FlatList, Image, KeyboardAvoidingView, Platform, Animated, Keyboard } from 'react-native';
+import { SafeAreaView, View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, FlatList, Image, KeyboardAvoidingView, Platform, Animated, Keyboard, Modal, PanResponder } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { StatusBar } from 'expo-status-bar';
+import Model from '../app/model';
 
 const suggestions = [
   { title: "Write an email", subtitle: "to communicate professionally or casually" },
@@ -26,6 +27,38 @@ const suggestions = [
 export default function App() {
   const [randomSuggestions, setRandomSuggestions] = useState<typeof suggestions>([]);
   const keyboardHeight = useRef(new Animated.Value(0)).current;
+  const [modalVisible, setModalVisible] = useState(false);
+  const panY = useRef(new Animated.Value(0)).current;
+
+  const resetPositionAnim = Animated.timing(panY, {
+    toValue: 0,
+    duration: 300,
+    useNativeDriver: false,
+  });
+
+  const closeAnim = Animated.timing(panY, {
+    toValue: 500, // Move enough to hide the modal
+    duration: 300,
+    useNativeDriver: false,
+  });
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        return Math.abs(gestureState.dy) > 5;
+      },
+      onPanResponderMove: (evt, gestureState) => {
+        panY.setValue(gestureState.dy);
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        if (gestureState.dy > 50) {
+          closeAnim.start(() => setModalVisible(false));
+        } else {
+          resetPositionAnim.start();
+        }
+      },
+    })
+  ).current;
 
   useEffect(() => {
     const shuffled = [...suggestions].sort(() => 0.5 - Math.random());
@@ -52,6 +85,12 @@ export default function App() {
       keyboardWillHide.remove();
     };
   }, []);
+
+  useEffect(() => {
+    if (modalVisible) {
+      panY.setValue(0);
+    }
+  }, [modalVisible]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -102,7 +141,7 @@ export default function App() {
           <TouchableOpacity style={styles.inputButton}>
             <Icon name="plus" size={24} color="#000000" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.inputButton}>
+          <TouchableOpacity style={styles.inputButton} onPress={() => setModalVisible(true)}>
             <Icon name="layers" size={24} color="#000000" />
           </TouchableOpacity>
           <TextInput 
@@ -115,6 +154,26 @@ export default function App() {
           <Icon name="arrow-up" size={24} color="#000000" />
         </TouchableOpacity>
       </Animated.View>
+
+      {/* Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <Animated.View
+            style={[styles.modalContent, { transform: [{ translateY: panY }] }]}
+            {...panResponder.panHandlers}
+          >
+            <Model />
+            <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
+              <Icon name="x" size={24} color="#000" />
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -224,5 +283,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    flex: 0.85, // Occupy slightly less of the screen
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 5,
   },
 });
