@@ -1,6 +1,6 @@
 # Privacy-Focused Offline AI Chat Program
 
-Welcome to our Privacy-Focused Offline AI Chat Program! 🎉 This project is designed to provide a secure and private chatting experience by running entirely on-device without relying on external servers. 🔒
+Welcome to *cutie*! A fully privacy-focused offline AI chat program! 🎉 This project is designed to provide a secure and private chatting experience by running entirely on-device without relying on external servers. 🔒
 
 ## Features
 
