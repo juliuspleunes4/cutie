@@ -31,6 +31,7 @@ export default function App() {
   const [modalVisible, setModalVisible] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [showLogo, setShowLogo] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
   const panY = useRef(new Animated.Value(0)).current;
   const [typingAnimation, setTypingAnimation] = useState<string | null>(null);
   const maxCharacterLimit = 100;
@@ -164,17 +165,21 @@ export default function App() {
     }
   };
 
+  const toggleTheme = () => {
+    setDarkMode(!darkMode);
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, darkMode ? styles.darkContainer : styles.lightContainer]}>
       {/* Header */}
       <StatusBar hidden={true} />
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerButton}>
-          <Icon name="menu" size={24} color="#000" />
+          <Icon name="menu" size={24} color={darkMode ? "#fff" : "#000"} />
         </TouchableOpacity>
-        <Image source={require('../assets/images/cutie_text.png')} style={styles.headerImage} />
-        <TouchableOpacity style={styles.headerButton}>
-          <Icon name="edit-2" size={24} color="#000" />
+        <Image source={require('../assets/images/cutie_nb.png')} style={styles.headerImage} />
+        <TouchableOpacity style={styles.headerButton} onPress={toggleTheme}>
+          <Icon name={darkMode ? "moon" : "sun"} size={24} color={darkMode ? "#fff" : "#000"} />
         </TouchableOpacity>
       </View>
 
@@ -189,13 +194,13 @@ export default function App() {
 
         {/* Chat Messages */}
         {messages.map((message, index) => (
-          <View key={index} style={message.sender === 'user' ? styles.userMessage : styles.aiMessage}>
-            <Text style={styles.messageText}>{message.text}</Text>
+          <View key={index} style={message.sender === 'user' ? [styles.userMessage, darkMode ? styles.darkUserMessage : styles.lightUserMessage] : [styles.aiMessage, darkMode ? styles.darkAiMessage : styles.lightAiMessage]}>
+            <Text style={[styles.messageText, darkMode ? styles.darkMessageText : styles.lightMessageText]}>{message.text}</Text>
           </View>
         ))}
         {typingAnimation && (
-          <View style={styles.aiMessage}>
-            <Text style={styles.messageText}>{typingAnimation}</Text>
+          <View style={[styles.aiMessage, darkMode ? styles.darkAiMessage : styles.lightAiMessage]}>
+            <Text style={[styles.messageText, darkMode ? styles.darkMessageText : styles.lightMessageText]}>{typingAnimation}</Text>
           </View>
         )}
       </ScrollView>
@@ -210,9 +215,9 @@ export default function App() {
             bounces={false} // Prevent vertical scroll
             contentContainerStyle={styles.suggestionsContainer}
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.suggestionCard}>
-                <Text style={styles.suggestionTitle} numberOfLines={1}>{item.title}</Text>
-                <Text style={styles.suggestionSubtitle} numberOfLines={2}>{item.subtitle}</Text>
+              <TouchableOpacity style={[styles.suggestionCard, darkMode ? styles.darkSuggestionCard : styles.lightSuggestionCard]}>
+                <Text style={[styles.suggestionTitle, darkMode ? styles.darkSuggestionTitle : styles.lightSuggestionTitle]} numberOfLines={1}>{item.title}</Text>
+                <Text style={[styles.suggestionSubtitle, darkMode ? styles.darkSuggestionSubtitle : styles.lightSuggestionSubtitle]} numberOfLines={2}>{item.subtitle}</Text>
               </TouchableOpacity>
             )}
             keyExtractor={(item) => item.title}
@@ -221,29 +226,26 @@ export default function App() {
       )}
 
       {/* Divider */}
-      <View style={styles.divider} />
+      <View style={[styles.divider, darkMode ? styles.darkDivider : styles.lightDivider]} />
 
       {/* Bottom Bar */}
-      <Animated.View style={[styles.bottomBar, { marginBottom: keyboardHeight }]}>
+      <Animated.View style={[styles.bottomBar, { marginBottom: keyboardHeight }, darkMode ? styles.darkBottomBar : styles.lightBottomBar]}>
         <View style={styles.inputContainer}>
           <TouchableOpacity style={styles.inputButton}>
-            <Icon name="plus" size={24} color="#000000" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.inputButton} onPress={() => setModalVisible(true)}>
-            <Icon name="layers" size={24} color="#000000" />
+            <Icon name="plus" size={24} color={darkMode ? "#fff" : "#000"} />
           </TouchableOpacity>
           <TextInput 
-            style={styles.input}
+            style={[styles.input, darkMode ? styles.darkInput : styles.lightInput]}
             placeholder="Message..."
-            placeholderTextColor="#000000"
+            placeholderTextColor={darkMode ? "#ffffff77" : "#00000077"}
             value={inputMessage}
             onChangeText={handleInputChange}
             onSubmitEditing={sendMessage}
           />
-          <Text style={styles.characterCounter}>{inputMessage.length}/{maxCharacterLimit}</Text>
+          <Text style={[styles.characterCounter, darkMode ? styles.darkCharacterCounter : styles.lightCharacterCounter]}>{inputMessage.length}/{maxCharacterLimit}</Text>
         </View>
-        <TouchableOpacity style={styles.scrollTopButton} onPress={sendMessage}>
-          <Icon name="arrow-up" size={24} color="#000000" />
+        <TouchableOpacity style={[styles.scrollTopButton, darkMode ? styles.darkScrollTopButton : styles.lightScrollTopButton]} onPress={sendMessage}>
+          <Icon name="arrow-up" size={24} color={darkMode ? "#fff" : "#000"} />
         </TouchableOpacity>
       </Animated.View>
 
@@ -256,12 +258,12 @@ export default function App() {
       >
         <View style={styles.modalContainer}>
           <Animated.View
-            style={[styles.modalContent, { transform: [{ translateY: panY }] }]}
+            style={[styles.modalContent, { transform: [{ translateY: panY }] }, darkMode ? styles.darkModalContent : styles.lightModalContent]}
             {...panResponder.panHandlers}
           >
             <Model />
             <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
-              <Icon name="x" size={24} color="#000" />
+              <Icon name="x" size={24} color={darkMode ? "#fff" : "#000"} />
             </TouchableOpacity>
           </Animated.View>
         </View>
@@ -273,18 +275,23 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  lightContainer: {
     backgroundColor: '#fff',
+  },
+  darkContainer: {
+    backgroundColor: '#121212',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 4, // Adjusted padding for more top space
-    marginTop: 0, // Removed margin
+    paddingVertical: 4,
+    marginTop: 0,
   },
   headerButton: {
-    padding: 4, // Reduced padding
+    padding: 4,
   },
   headerImage: {
     width: 100,
@@ -297,13 +304,13 @@ const styles = StyleSheet.create({
   contentContainer: {
     flexGrow: 1,
     paddingBottom: 20,
-    paddingHorizontal: 16, // Added padding for horizontal
-    paddingTop: 20, // Added padding for top
+    paddingHorizontal: 16,
+    paddingTop: 20,
   },
   imageContainer: {
-    flex: 1, // occupy remaining space
-    justifyContent: 'center', // center vertically
-    alignItems: 'center', // center horizontally
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   logo: {
     width: 50,
@@ -313,47 +320,73 @@ const styles = StyleSheet.create({
   suggestionsContainer: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    flexGrow: 1, // allow horizontal scroll but prevent vertical
-    justifyContent: 'flex-end', // push to bottom
+    flexGrow: 1,
+    justifyContent: 'flex-end',
   },
   suggestionsWrapper: {
-    flex: 0, // prevent vertical scroll
-    justifyContent: 'flex-end', // push suggestions to bottom
-    paddingBottom: 20, // extra spacing from edge
+    flex: 0,
+    justifyContent: 'flex-end',
+    paddingBottom: 20,
   },
   suggestionCard: {
-    backgroundColor: '#f8f8f8',
     padding: 12,
     borderRadius: 12,
     marginRight: 12,
     width: 200,
-    height: 100, // fixed height for the card
+    height: 100,
+  },
+  lightSuggestionCard: {
+    backgroundColor: '#f8f8f8',
+  },
+  darkSuggestionCard: {
+    backgroundColor: '#1e1e1e',
   },
   suggestionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#000',
     marginBottom: 4,
+  },
+  lightSuggestionTitle: {
+    color: '#000',
+  },
+  darkSuggestionTitle: {
+    color: '#fff',
   },
   suggestionSubtitle: {
     fontSize: 14,
+  },
+  lightSuggestionSubtitle: {
     color: '#666',
+  },
+  darkSuggestionSubtitle: {
+    color: '#aaa',
   },
   divider: {
     height: 1,
-    backgroundColor: '#f0f0f0',
     marginHorizontal: 16,
-    marginBottom: 16, // Added margin for spacing
+    marginBottom: 16,
+  },
+  lightDivider: {
+    backgroundColor: '#f0f0f0',
+  },
+  darkDivider: {
+    backgroundColor: '#333',
   },
   bottomBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10, // Adjusted padding
+    padding: 10,
     borderTopWidth: 1,
+    borderRadius: 12,
+    margin: 16,
+  },
+  lightBottomBar: {
+    backgroundColor: '#f8f8f8',
     borderTopColor: '#f0f0f0',
-    backgroundColor: '#f8f8f8', // Same background color as suggestion cards
-    borderRadius: 12, // Rounded corners
-    margin: 16, // Margin to separate from screen edges
+  },
+  darkBottomBar: {
+    backgroundColor: '#1e1e1e',
+    borderTopColor: '#333',
   },
   inputContainer: {
     flex: 1,
@@ -368,30 +401,50 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
+  },
+  lightInput: {
     color: '#000',
   },
+  darkInput: {
+    color: '#fff',
+  },
   characterCounter: {
-    color: '#666',
     marginLeft: 8,
+  },
+  lightCharacterCounter: {
+    color: '#666',
+  },
+  darkCharacterCounter: {
+    color: '#bbb',
   },
   scrollTopButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f0f0f0',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  lightScrollTopButton: {
+    backgroundColor: '#f0f0f0',
+  },
+  darkScrollTopButton: {
+    backgroundColor: '#333',
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    flex: 0.85, // 85% of the screen height
-    backgroundColor: '#fff',
+    flex: 0.85,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
+  },
+  lightModalContent: {
+    backgroundColor: '#fff',
+  },
+  darkModalContent: {
+    backgroundColor: '#1e1e1e',
   },
   closeButton: {
     position: 'absolute',
@@ -404,22 +457,37 @@ const styles = StyleSheet.create({
   },
   userMessage: {
     alignSelf: 'flex-end',
-    backgroundColor: '#EEEEEEFF', // Color for user messages
     borderRadius: 10,
     padding: 10,
     margin: 5,
     maxWidth: '80%',
+  },
+  lightUserMessage: {
+    backgroundColor: '#eeeeee',
+  },
+  darkUserMessage: {
+    backgroundColor: '#444',
   },
   aiMessage: {
     alignSelf: 'flex-start',
-    backgroundColor: '#fff', // Ensure this matches the container background color
     borderRadius: 10,
     padding: 10,
     margin: 5,
     maxWidth: '80%',
   },
+  lightAiMessage: {
+    backgroundColor: '#fff',
+  },
+  darkAiMessage: {
+    backgroundColor: '#222',
+  },
   messageText: {
     fontSize: 16,
+  },
+  lightMessageText: {
     color: '#000',
+  },
+  darkMessageText: {
+    color: '#fff',
   },
 });
