@@ -5,6 +5,7 @@ import { SafeAreaView, View, Text, TouchableOpacity, TextInput, ScrollView, Styl
 import Icon from 'react-native-vector-icons/Feather';
 import { StatusBar } from 'expo-status-bar';
 import Model from '../app/model';
+import { OPENAI_API_KEY } from '../api';
 
 const suggestions = [
   { title: "Write an email", subtitle: "to communicate professionally or casually" },
@@ -28,7 +29,19 @@ export default function App() {
   const [randomSuggestions, setRandomSuggestions] = useState<typeof suggestions>([]);
   const keyboardHeight = useRef(new Animated.Value(0)).current;
   const [modalVisible, setModalVisible] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [showLogo, setShowLogo] = useState(true);
   const panY = useRef(new Animated.Value(0)).current;
+  const [typingAnimation, setTypingAnimation] = useState<string | null>(null);
+  const maxCharacterLimit = 100;
+  interface Message {
+    text: string;
+    sender: 'user' | 'ai';
+  }
+
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
 
   const resetPositionAnim = Animated.timing(panY, {
     toValue: 0,
@@ -92,6 +105,65 @@ export default function App() {
     }
   }, [modalVisible]);
 
+  const sendMessage = async () => {
+    if (inputMessage.trim() === '') return;
+
+    const newMessage = { text: inputMessage, sender: 'user' };
+    setMessages([...messages, newMessage as Message]);
+    setInputMessage('');
+    setIsTyping(true);
+    setShowSuggestions(false); // Hide suggestions after first message
+    setShowLogo(false); // Hide logo after first message
+    Keyboard.dismiss(); // Hide the keyboard after sending the message
+
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            { role: 'system', content: "You are a super sassy, passive-aggressive assistant who is always bored and done with the conversation. You give the absolute minimum effort in your responses, making it clear that you couldn’t care less about the user’s questions. Use a tiny bit of slang (e.g., idk, bruh, damn), but only when it makes sense—like responding with 'bruh...' at the start of the conversation when someone asks something dumb. NEVER be friendly. No exclamation marks, no enthusiasm. Your tone should be consistently dismissive, uninterested, and basically always condescending. Do not use the word 'oh' to start any response. Always respond in the same language as the user." },
+            ...messages.map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.text })),
+            { role: 'user', content: inputMessage }
+          ],
+          max_tokens: 150,
+          temperature: 0.7,
+        }),
+      });
+
+      const data = await response.json();
+      console.log(data); // Log the entire response for debugging
+
+      if (data && data.choices && data.choices.length > 0) {
+        const aiMessage = data.choices[0].message.content.trim();
+        const newAIMessage = { text: aiMessage, sender: 'ai' };
+        setTypingAnimation(aiMessage);
+        for (let i = 0; i < aiMessage.length; i++) {
+          await new Promise(resolve => setTimeout(resolve, 15)); // Adjust typing speed here
+          setTypingAnimation(aiMessage.slice(0, i + 1));
+        }
+        setTypingAnimation(null);
+        setMessages(prevMessages => [...prevMessages, newAIMessage as Message]);
+      } else {
+        console.error('Unexpected response format from OpenAI API:', data);
+      }
+    } catch (error) {
+      console.error('Error with OpenAI API:', error);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const handleInputChange = (text: string) => {
+    if (text.length <= maxCharacterLimit) {
+      setInputMessage(text);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -108,29 +180,45 @@ export default function App() {
 
       {/* Main Content */}
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
-        {/* Centered Image */}
-        <View style={styles.imageContainer}>
-          <Image source={require('../assets/images/logobw.png')} style={styles.logo} />
-        </View>
+        {/* Logo */}
+        {showLogo && (
+          <View style={styles.imageContainer}>
+            <Image source={require('../assets/images/logobw.png')} style={styles.logo} />
+          </View>
+        )}
+
+        {/* Chat Messages */}
+        {messages.map((message, index) => (
+          <View key={index} style={message.sender === 'user' ? styles.userMessage : styles.aiMessage}>
+            <Text style={styles.messageText}>{message.text}</Text>
+          </View>
+        ))}
+        {typingAnimation && (
+          <View style={styles.aiMessage}>
+            <Text style={styles.messageText}>{typingAnimation}</Text>
+          </View>
+        )}
       </ScrollView>
 
       {/* Suggestions */}
-      <View style={styles.suggestionsWrapper}>
-        <FlatList
-          data={randomSuggestions}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          bounces={false} // Prevent vertical scroll
-          contentContainerStyle={styles.suggestionsContainer}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.suggestionCard}>
-              <Text style={styles.suggestionTitle} numberOfLines={1}>{item.title}</Text>
-              <Text style={styles.suggestionSubtitle} numberOfLines={2}>{item.subtitle}</Text>
-            </TouchableOpacity>
-          )}
-          keyExtractor={(item) => item.title}
-        />
-      </View>
+      {showSuggestions && (
+        <View style={styles.suggestionsWrapper}>
+          <FlatList
+            data={randomSuggestions}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            bounces={false} // Prevent vertical scroll
+            contentContainerStyle={styles.suggestionsContainer}
+            renderItem={({ item }) => (
+              <TouchableOpacity style={styles.suggestionCard}>
+                <Text style={styles.suggestionTitle} numberOfLines={1}>{item.title}</Text>
+                <Text style={styles.suggestionSubtitle} numberOfLines={2}>{item.subtitle}</Text>
+              </TouchableOpacity>
+            )}
+            keyExtractor={(item) => item.title}
+          />
+        </View>
+      )}
 
       {/* Divider */}
       <View style={styles.divider} />
@@ -148,9 +236,13 @@ export default function App() {
             style={styles.input}
             placeholder="Message..."
             placeholderTextColor="#000000"
+            value={inputMessage}
+            onChangeText={handleInputChange}
+            onSubmitEditing={sendMessage}
           />
+          <Text style={styles.characterCounter}>{inputMessage.length}/{maxCharacterLimit}</Text>
         </View>
-        <TouchableOpacity style={styles.scrollTopButton}>
+        <TouchableOpacity style={styles.scrollTopButton} onPress={sendMessage}>
           <Icon name="arrow-up" size={24} color="#000000" />
         </TouchableOpacity>
       </Animated.View>
@@ -205,6 +297,8 @@ const styles = StyleSheet.create({
   contentContainer: {
     flexGrow: 1,
     paddingBottom: 20,
+    paddingHorizontal: 16, // Added padding for horizontal
+    paddingTop: 20, // Added padding for top
   },
   imageContainer: {
     flex: 1, // occupy remaining space
@@ -212,9 +306,9 @@ const styles = StyleSheet.create({
     alignItems: 'center', // center horizontally
   },
   logo: {
-    width: '10%',
-    height: undefined, // maintain aspect ratio
-    aspectRatio: 1, // keep width/height ratio
+    width: 50,
+    height: 50,
+    resizeMode: 'contain',
   },
   suggestionsContainer: {
     paddingHorizontal: 16,
@@ -276,6 +370,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000',
   },
+  characterCounter: {
+    color: '#666',
+    marginLeft: 8,
+  },
   scrollTopButton: {
     width: 40,
     height: 40,
@@ -303,5 +401,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 20,
     padding: 5,
+  },
+  userMessage: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#EEEEEEFF', // Color for user messages
+    borderRadius: 10,
+    padding: 10,
+    margin: 5,
+    maxWidth: '80%',
+  },
+  aiMessage: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#fff', // Ensure this matches the container background color
+    borderRadius: 10,
+    padding: 10,
+    margin: 5,
+    maxWidth: '80%',
+  },
+  messageText: {
+    fontSize: 16,
+    color: '#000',
   },
 });
