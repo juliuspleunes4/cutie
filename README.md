@@ -1,11 +1,10 @@
 # Privacy-Focused Offline AI Chat Program
 
-Welcome to *cutie*! A fully privacy-focused offline AI chat program! 🎉 This project is designed to provide a secure and private chatting experience by running entirely on-device without relying on external servers. 🔒
+Welcome to *cutie*! A passive-aggressive AI chat program! 🎉 This project is designed to really get under your skin.
 
 ## Features
 
-- **Privacy-Focused**: Your data stays on your device, ensuring complete privacy. 🛡️
-- **Offline Capability**: No need for an internet connection to use the chat program. 🌐
+- **Passive-Aggressive AI**: Designed to provide a challenging and provocative chat experience. 😈
 - **AI-Powered**: Utilizes advanced AI to provide intelligent and responsive chat interactions. 🤖
 
 ## Getting Started
@@ -21,6 +20,14 @@ To get started with the project, follow these steps:
 ```bash
 git clone https://github.com/juliuspleunes4/cutie.git
 cd cutie
+```
+
+```markdown
+4. Create a file named `api.js` in the `cutie` directory and add your OpenAI key. 🔑
+
+```javascript
+// api.js
+const openaiKey = 'your-openai-key-here';
 ```
 
 ## Contributing
