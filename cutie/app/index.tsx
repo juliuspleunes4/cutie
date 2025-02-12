@@ -237,7 +237,7 @@ export default function App() {
           <TextInput 
             style={[styles.input, darkMode ? styles.darkInput : styles.lightInput]}
             placeholder="Message..."
-            placeholderTextColor={darkMode ? "#ffffff77" : "#00000077"}
+            placeholderTextColor={darkMode ? "#ffffff77" : "#00000073"}
             value={inputMessage}
             onChangeText={handleInputChange}
             onSubmitEditing={sendMessage}
