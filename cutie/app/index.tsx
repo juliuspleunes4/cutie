@@ -177,7 +177,7 @@ export default function App() {
         <TouchableOpacity style={styles.headerButton}>
           <Icon name="menu" size={24} color={darkMode ? "#fff" : "#000"} />
         </TouchableOpacity>
-        <Image source={require('../assets/images/cutie_nb.png')} style={styles.headerImage} />
+        <Image source={darkMode ? require('../assets/images/cutie_nb_inv.png') : require('../assets/images/cutie_nb.png')} style={styles.headerImage} />
         <TouchableOpacity style={styles.headerButton} onPress={toggleTheme}>
           <Icon name={darkMode ? "moon" : "sun"} size={24} color={darkMode ? "#fff" : "#000"} />
         </TouchableOpacity>
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   darkAiMessage: {
-    backgroundColor: '#222',
+    backgroundColor: '#121212',
   },
   messageText: {
     fontSize: 16,
