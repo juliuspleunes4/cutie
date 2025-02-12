@@ -27,7 +27,7 @@ cd cutie
 
 ```javascript
 // api.js
-const openaiKey = 'your-openai-key-here';
+export const OPENAI_API_KEY = 'your-openai-key-here';
 ```
 
 ## Contributing
