@@ -106,10 +106,10 @@ export default function App() {
     }
   }, [modalVisible]);
 
-  const sendMessage = async () => {
-    if (inputMessage.trim() === '') return;
+  const sendMessage = async (messageText: string) => {
+    if (messageText.trim() === '') return;
 
-    const newMessage = { text: inputMessage, sender: 'user' };
+    const newMessage = { text: messageText, sender: 'user' };
     setMessages([...messages, newMessage as Message]);
     setInputMessage('');
     setIsTyping(true);
@@ -129,7 +129,7 @@ export default function App() {
           messages: [
             { role: 'system', content: "You are a super sassy, passive-aggressive assistant who is always bored and done with the conversation. You give the absolute minimum effort in your responses, making it clear that you couldn’t care less about the user’s questions. Use a tiny bit of slang (e.g., idk, bruh, damn), but only when it makes sense—like responding with 'bruh...' at the start of the conversation when someone asks something dumb. NEVER be friendly. No exclamation marks, no enthusiasm. Your tone should be consistently dismissive, uninterested, and basically always condescending. Do not use the word 'oh' to start any response. Always respond in the same language as the user." },
             ...messages.map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.text })),
-            { role: 'user', content: inputMessage }
+            { role: 'user', content: messageText }
           ],
           max_tokens: 150,
           temperature: 0.7,
@@ -163,6 +163,11 @@ export default function App() {
     if (text.length <= maxCharacterLimit) {
       setInputMessage(text);
     }
+  };
+
+  const handleSuggestionPress = (title: string, subtitle: string) => {
+    const suggestionText = `${title}: ${subtitle}`;
+    sendMessage(suggestionText);
   };
 
   const toggleTheme = () => {
@@ -215,7 +220,7 @@ export default function App() {
             bounces={false} // Prevent vertical scroll
             contentContainerStyle={styles.suggestionsContainer}
             renderItem={({ item }) => (
-              <TouchableOpacity style={[styles.suggestionCard, darkMode ? styles.darkSuggestionCard : styles.lightSuggestionCard]}>
+              <TouchableOpacity style={[styles.suggestionCard, darkMode ? styles.darkSuggestionCard : styles.lightSuggestionCard]} onPress={() => handleSuggestionPress(item.title, item.subtitle)}>
                 <Text style={[styles.suggestionTitle, darkMode ? styles.darkSuggestionTitle : styles.lightSuggestionTitle]} numberOfLines={1}>{item.title}</Text>
                 <Text style={[styles.suggestionSubtitle, darkMode ? styles.darkSuggestionSubtitle : styles.lightSuggestionSubtitle]} numberOfLines={2}>{item.subtitle}</Text>
               </TouchableOpacity>
@@ -240,11 +245,11 @@ export default function App() {
             placeholderTextColor={darkMode ? "#ffffff77" : "#00000073"}
             value={inputMessage}
             onChangeText={handleInputChange}
-            onSubmitEditing={sendMessage}
+            onSubmitEditing={() => sendMessage(inputMessage)}
           />
           <Text style={[styles.characterCounter, darkMode ? styles.darkCharacterCounter : styles.lightCharacterCounter]}>{inputMessage.length}/{maxCharacterLimit}</Text>
         </View>
-        <TouchableOpacity style={[styles.scrollTopButton, darkMode ? styles.darkScrollTopButton : styles.lightScrollTopButton]} onPress={sendMessage}>
+        <TouchableOpacity style={[styles.scrollTopButton, darkMode ? styles.darkScrollTopButton : styles.lightScrollTopButton]} onPress={() => sendMessage(inputMessage)}>
           <Icon name="arrow-up" size={24} color={darkMode ? "#fff" : "#000"} />
         </TouchableOpacity>
       </Animated.View>
